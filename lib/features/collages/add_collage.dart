@@ -1,215 +1,192 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/common_widget/custom_alert_dialog.dart';
-import 'package:flutter_application_1/common_widget/custom_button.dart';
-import 'package:flutter_application_1/common_widget/custom_text_formfield.dart';
-import 'package:flutter_application_1/util/value_validator.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class AddCollege extends StatefulWidget {
-  const AddCollege({super.key});
+import '../../common_widget/custom_alert_dialog.dart';
+import '../../common_widget/custom_image_picker_button.dart';
+import '../../common_widget/custom_text_formfield.dart';
+import '../../util/value_validator.dart';
+import 'collages_bloc/collages_bloc.dart';
+
+class AddCollage extends StatefulWidget {
+  final Map? collageDetails;
+  const AddCollage({
+    super.key,
+    this.collageDetails,
+  });
 
   @override
-  _AddCollegeState createState() => _AddCollegeState();
+  State<AddCollage> createState() => _AddCollageState();
 }
 
-class _AddCollegeState extends State<AddCollege> {
-  final TextEditingController _collegeNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+class _AddCollageState extends State<AddCollage> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _addressController = TextEditingController();
 
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _addressLineController = TextEditingController();
-  final TextEditingController _placeController = TextEditingController();
-  final TextEditingController _stateController = TextEditingController();
-  final TextEditingController _pincodeController = TextEditingController();
-  final TextEditingController _districtController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  PlatformFile? coverImage;
+
+  @override
+  void initState() {
+    if (widget.collageDetails != null) {
+      _nameController.text = widget.collageDetails!['name'] ?? '';
+      _emailController.text = widget.collageDetails!['email'] ?? '';
+      _phoneController.text = widget.collageDetails!['phone'] ?? '';
+      _descriptionController.text = widget.collageDetails!['description'] ?? '';
+      _addressController.text = widget.collageDetails!['address'] ?? '';
+    }
+    super.initState();
+  }
 
   @override
   void dispose() {
-    _collegeNameController.dispose();
+    _nameController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
     _phoneController.dispose();
-    _addressLineController.dispose();
-    _placeController.dispose();
-    _stateController.dispose();
-    _pincodeController.dispose();
-    _districtController.dispose();
+    _descriptionController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CustomAlertDialog(
-      title: 'Add College',
-      content: Expanded(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Collage Name',
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.left,
+    return BlocConsumer<CollagesBloc, CollagesState>(
+      listener: (context, state) {
+        if (state is CollagesSuccessState) {
+          Navigator.pop(context);
+        }
+      },
+      builder: (context, state) {
+        return CustomAlertDialog(
+          title: widget.collageDetails != null ? 'Edit Collage' : 'Add Collage',
+          isLoading: state is CollagesLoadingState,
+          content: Flexible(
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  CustomImagePickerButton(
+                    width: double.infinity,
+                    height: 200,
+                    selectedImage: widget.collageDetails?['image_url'],
+                    onPick: (pick) {
+                      coverImage = pick;
+                      setState(() {});
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  _buildLabel('Collage Name'),
+                  const SizedBox(height: 8),
+                  CustomTextFormField(
+                    labelText: 'Enter collage name',
+                    controller: _nameController,
+                    validator: notEmptyValidator,
+                    isLoading: false,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildLabel('Description'),
+                  const SizedBox(height: 8),
+                  CustomTextFormField(
+                    labelText: 'Enter collage description',
+                    controller: _descriptionController,
+                    validator: notEmptyValidator,
+                    isLoading: false,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildLabel('Address'),
+                  const SizedBox(height: 8),
+                  CustomTextFormField(
+                    labelText: 'Enter collage address',
+                    controller: _addressController,
+                    validator: notEmptyValidator,
+                    isLoading: false,
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+                  if (widget.collageDetails == null) ...[
+                    _buildLabel('Collage Email ID'),
+                    const SizedBox(height: 8),
+                    CustomTextFormField(
+                      labelText: 'Enter collage email id',
+                      controller: _emailController,
+                      validator: notEmptyValidator,
+                      isLoading: false,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildLabel('Password'),
+                    const SizedBox(height: 8),
+                    CustomTextFormField(
+                      labelText: 'Enter password',
+                      controller: _passwordController,
+                      validator: passwordValidator,
+                      isLoading: false,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  _buildLabel('Phone Number'),
+                  const SizedBox(height: 8),
+                  CustomTextFormField(
+                    labelText: 'Enter phone number',
+                    controller: _phoneController,
+                    validator: notEmptyValidator,
+                    isLoading: false,
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(
-                height: 8,
-              ),
-              CustomTextFormField(
-                  labelText: 'College Name',
-                  controller: _collegeNameController,
-                  validator: notEmptyValidator,
-                  isLoading: false),
-              const Text(
-                'Collage Email Id',
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              CustomTextFormField(
-                  labelText: 'Enter college email id',
-                  controller: _emailController,
-                  validator: notEmptyValidator,
-                  isLoading: false),
-              const Text(
-                'Password',
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              CustomTextFormField(
-                  labelText: 'Enter password',
-                  controller: _passwordController,
-                  validator: notEmptyValidator,
-                  isLoading: false),
-              const Text(
-                'Phone Number',
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              CustomTextFormField(
-                  labelText: 'Enter phone number',
-                  controller: _phoneController,
-                  validator: notEmptyValidator,
-                  isLoading: false),
-              const Text(
-                'Address Line',
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              CustomTextFormField(
-                  labelText: 'Enter address line',
-                  controller: _addressLineController,
-                  validator: notEmptyValidator,
-                  isLoading: false),
-              const Text(
-                'Place',
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              CustomTextFormField(
-                  labelText: 'enter place',
-                  controller: _placeController,
-                  validator: notEmptyValidator,
-                  isLoading: false),
-              const Text(
-                'State',
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              CustomTextFormField(
-                  labelText: 'Enter state',
-                  controller: _stateController,
-                  validator: notEmptyValidator,
-                  isLoading: false),
-              const Text(
-                'Pincode',
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              CustomTextFormField(
-                  labelText: 'Enter pincode',
-                  controller: _pincodeController,
-                  validator: pincodeValidator,
-                  isLoading: false),
-              const Text(
-                'District',
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              CustomTextFormField(
-                  labelText: 'Enter district',
-                  controller: _districtController,
-                  validator: notEmptyValidator,
-                  isLoading: false),
-              const SizedBox(
-                height: 30,
-              ),
-              CustomButton(
-                inverse: true,
-                onPressed: () {},
-                label: 'Add Collage',
-              )
-            ],
+            ),
           ),
-        ),
+          primaryButton: 'Save',
+          onPrimaryPressed: () {
+            if (_formKey.currentState!.validate() && ((coverImage != null) || widget.collageDetails != null)) {
+              Map<String, dynamic> details = {
+                'name': _nameController.text.trim(),
+                'description': _descriptionController.text.trim(),
+                'address': _addressController.text.trim(),
+                'email': _emailController.text.trim(),
+                'password': _passwordController.text.trim(),
+                'phone': _phoneController.text.trim(),
+              };
+              if (coverImage != null) {
+                details['image'] = coverImage!.bytes;
+                details['image_name'] = coverImage!.name;
+              }
+
+              if (widget.collageDetails != null) {
+                BlocProvider.of<CollagesBloc>(context).add(
+                  EditCollageEvent(
+                    collageId: widget.collageDetails!['id'],
+                    collageDetails: details,
+                  ),
+                );
+              } else {
+                BlocProvider.of<CollagesBloc>(context).add(
+                  AddCollageEvent(
+                    collageDetails: details,
+                  ),
+                );
+              }
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontWeight: FontWeight.w600,
+        color: Colors.black87,
+        fontSize: 14.0,
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/features/collages/colleges.dart';
+import 'package:flutter_application_1/features/collages/collage_screen.dart';
 import 'package:flutter_application_1/features/login/loginscreen.dart';
-import 'package:flutter_application_1/features/students/students.dart';
+import 'package:flutter_application_1/features/student/student_screen.dart';
 import 'package:flutter_application_1/theme/app_theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,12 +16,23 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
+    Future.delayed(const Duration(milliseconds: 200), () {
+      final GoTrueClient auth = Supabase.instance.client.auth;
+      if (auth.currentUser == null || auth.currentUser!.appMetadata['role'] != 'admin') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const Loginscreen(),
+          ),
+        );
+      }
+    });
+
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
@@ -39,8 +50,7 @@ class _HomeScreenState extends State<HomeScreen>
               width: 250,
               color: Colors.white,
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -107,9 +117,11 @@ class _HomeScreenState extends State<HomeScreen>
                         label: "Log Out",
                         isActive: _tabController.index == 4,
                         onTap: () {
+                          bool isLoading = false;
                           showDialog(
                             context: context,
                             builder: (context) => CustomAlertDialog(
+                              isLoading: isLoading,
                               title: "LOG OUT",
                               content: const Text(
                                 "Are you sure you want to log out? Clicking 'Logout' will end your current session and require you to sign in again to access your account.",
@@ -117,6 +129,8 @@ class _HomeScreenState extends State<HomeScreen>
                               width: 400,
                               primaryButton: "LOG OUT",
                               onPrimaryPressed: () {
+                                isLoading = true;
+                                setState(() {});
                                 Supabase.instance.client.auth.signOut();
                                 Navigator.pushAndRemoveUntil(
                                     context,
@@ -137,8 +151,8 @@ class _HomeScreenState extends State<HomeScreen>
               controller: _tabController,
               children: const [
                 DashboardScreen(),
-                CollegesScreen(),
-                StudentTable(),
+                CollageScreen(),
+                StudentScreen(),
               ],
             ),
           ),
