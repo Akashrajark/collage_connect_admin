@@ -13,6 +13,8 @@ class DashboardScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Wrap(
+            spacing: 12,
+            runSpacing: 12,
             children: [
               FutureBuilder(
                   future: Supabase.instance.client.from('collages').count(),
@@ -24,7 +26,6 @@ class DashboardScreen extends StatelessWidget {
                       color: const Color(0xFFA9E4FA),
                     );
                   }),
-              const SizedBox(width: 12),
               FutureBuilder(
                   future: Supabase.instance.client.from('students').count(),
                   builder: (context, asyncSnapshot) {
@@ -33,28 +34,6 @@ class DashboardScreen extends StatelessWidget {
                       count: asyncSnapshot.hasData ? asyncSnapshot.data!.toString() : '0',
                       label: 'Sudents',
                       color: const Color(0xFFFFE4BC),
-                    );
-                  }),
-              const SizedBox(width: 12),
-              FutureBuilder(
-                  future: Supabase.instance.client.from('canteens').count(),
-                  builder: (context, asyncSnapshot) {
-                    return DashboardItem(
-                      isLoading: asyncSnapshot.connectionState == ConnectionState.waiting,
-                      count: asyncSnapshot.hasData ? asyncSnapshot.data!.toString() : '0',
-                      label: 'Canteen',
-                      color: const Color(0xFFF8BAB9),
-                    );
-                  }),
-              const SizedBox(width: 12),
-              FutureBuilder(
-                  future: Supabase.instance.client.from('courses').count(),
-                  builder: (context, asyncSnapshot) {
-                    return DashboardItem(
-                      isLoading: asyncSnapshot.connectionState == ConnectionState.waiting,
-                      count: asyncSnapshot.hasData ? asyncSnapshot.data!.toString() : '0',
-                      label: 'Courses',
-                      color: const Color(0xFFE0E2E2),
                     );
                   }),
             ],
